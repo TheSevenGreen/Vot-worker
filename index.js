@@ -21,5 +21,6 @@ app.use(async (ctx, next) => {
 
 app.use(mainRouter.routes());
 
-console.log(`🐿️ Oak is running at ${host}:${port}`);
-await app.listen({ host, port });
+console.log("🦊 Oak is running (Deno Deploy)");
+
+Deno.serve(app.fetch);
