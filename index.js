@@ -5,10 +5,13 @@ import mainRouter from "./routes/index.js";
 
 const app = new Application();
 
+// Request / response logs
 app.use(async (ctx, next) => {
-  console.log(`[REQ] ${ctx.request.method} ${ctx.request.url.pathname}`);
+  console.log(`[REQ] ${ctx.request.method} ${ctx.request.url.href}`);
   await next();
-  console.log(`[RES] ${ctx.response.status} ${ctx.request.method} ${ctx.request.url.pathname}`);
+  console.log(
+    `[RES] ${ctx.response.status} ${ctx.request.method} ${ctx.request.url.pathname}`,
+  );
 });
 
 // Global CORS
@@ -25,22 +28,12 @@ app.use(async (ctx, next) => {
   await next();
 });
 
-app.use(async (ctx, next) => {
-  ctx.response.headers.set("Access-Control-Allow-Origin", "*");
-  ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, HEAD, OPTIONS");
-  ctx.response.headers.set("Access-Control-Allow-Headers", "*");
-  ctx.response.headers.set("Access-Control-Max-Age", "86400");
-
-  if (ctx.request.method === "OPTIONS") {
-    ctx.response.status = 204;
-    return;
-  }
-
-  await next();
-});
-
 app.use(mainRouter.routes());
 app.use(mainRouter.allowedMethods());
+
+app.addEventListener("error", (evt) => {
+  console.error("[oak app error]", evt.error);
+});
 
 console.log("🦊 Oak is running (Deno Deploy)");
 Deno.serve(app.fetch);
