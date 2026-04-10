@@ -5,18 +5,19 @@ import mainRouter from "./routes/index.js";
 
 const app = new Application();
 
-// Request / response logs
 app.use(async (ctx, next) => {
   console.log(`[REQ] ${ctx.request.method} ${ctx.request.url.href}`);
   await next();
-  console.log(
-    `[RES] ${ctx.response.status} ${ctx.request.method} ${ctx.request.url.pathname}`,
-  );
+  console.log(`[RES] ${ctx.response.status} ${ctx.request.method} ${ctx.request.url.pathname}`);
 });
 
-// Global CORS
 app.use(async (ctx, next) => {
   const applyCors = () => {
+    ctx.response.headers.set("Access-Control-Allow-Origin", "*");
+    ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, HEAD, OPTIONS");
+    ctx.response.headers.set("Access-Control-Allow-Headers", "*");
+    ctx.response.headers.set("Access-Control-Max-Age", "86400");
+
     for (const corsHeaderKey of Object.keys(corsHeaders)) {
       ctx.response.headers.set(corsHeaderKey, corsHeaders[corsHeaderKey]);
     }
@@ -31,8 +32,6 @@ app.use(async (ctx, next) => {
   }
 
   await next();
-
-  // re-apply after route handlers in case something overwrote headers
   applyCors();
 });
 
