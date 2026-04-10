@@ -2,18 +2,34 @@ import { errorResponse } from "./responses.js";
 
 async function validateJSONRequest(ctx, toU8Array = true) {
   const contentType = ctx.request.headers.get("Content-Type");
-  if (contentType !== "application/json") {
+
+  if (!contentType || !contentType.includes("application/json")) {
     errorResponse(ctx, "error-content");
     return [null, null];
   }
 
-  const requestBody = ctx.request.body();
-  const requestInfo = await requestBody.value;
+  let requestInfo;
+  try {
+    requestInfo = await ctx.request.body.json();
+  } catch (error) {
+    console.error("Failed to parse JSON body:", error);
+    errorResponse(ctx, "error-request");
+    return [null, null];
+  }
+
+  if (!requestInfo || typeof requestInfo !== "object") {
+    errorResponse(ctx, "error-request");
+    return [null, null];
+  }
 
   let yandexBody = requestInfo.body;
   const yandexHeaders = requestInfo.headers;
 
-  if (yandexBody == undefined && yandexHeaders == undefined) {
+  console.log("requestInfo:", requestInfo);
+  console.log("request headers:", yandexHeaders);
+  console.log("request body:", yandexBody);
+
+  if (yandexBody === undefined && yandexHeaders === undefined) {
     errorResponse(ctx, "error-request");
     return [null, null];
   }
@@ -22,7 +38,17 @@ async function validateJSONRequest(ctx, toU8Array = true) {
     return [yandexBody, yandexHeaders];
   }
 
-  yandexBody = new Uint8Array(yandexBody);
+  if (yandexBody == null) {
+    return [yandexBody, yandexHeaders];
+  }
+
+  try {
+    yandexBody = new Uint8Array(yandexBody);
+  } catch (error) {
+    console.error("Failed to convert body to Uint8Array:", error);
+    errorResponse(ctx, "error-request");
+    return [null, null];
+  }
 
   return [yandexBody, yandexHeaders];
 }
