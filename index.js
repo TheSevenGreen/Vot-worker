@@ -25,6 +25,20 @@ app.use(async (ctx, next) => {
   await next();
 });
 
+app.use(async (ctx, next) => {
+  ctx.response.headers.set("Access-Control-Allow-Origin", "*");
+  ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, HEAD, OPTIONS");
+  ctx.response.headers.set("Access-Control-Allow-Headers", "*");
+  ctx.response.headers.set("Access-Control-Max-Age", "86400");
+
+  if (ctx.request.method === "OPTIONS") {
+    ctx.response.status = 204;
+    return;
+  }
+
+  await next();
+});
+
 app.use(mainRouter.routes());
 app.use(mainRouter.allowedMethods());
 
